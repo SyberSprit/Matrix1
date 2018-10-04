@@ -11,31 +11,34 @@ namespace Matrix
         int row, column;
         int size;
         float[,] elemnts;
-
+        public Matrix lower;
+        public Matrix upper;
         public int Row
         {
             get => row;
             private set => row = value;
         }
-        public int Column {
+        public int Column
+        {
             get => column;
             private set => column = value;
         }
-
-        public int Size {
+        public int Size
+        {
             get => size;
             set => size = value;
         }
-        public float[,] Elemnts {
+        public float[,] Elemnts
+        {
             get => elemnts;
             set => elemnts = value;
         }
-
         public Matrix(int r, int c)
         {
             Row = r;
             Column = c;
             Elemnts = new float[Row, Column];
+            // Decomposition();
         }
         public Matrix(Matrix m)
         {
@@ -50,14 +53,12 @@ namespace Matrix
 
                 }
             }
+            //Decomposition();
         }
-
-
         public void SetMatVal(int i, int j, float val)
         {
             Elemnts[i, j] = val;
         }
-
         public Matrix(float[,] e)
         {
             Row = e.GetLength(0);
@@ -70,6 +71,7 @@ namespace Matrix
                     Elemnts[i, j] = e[i, j];
                 }
             }
+            //Decomposition();
         }
         public float[] GetRow(int i)
         {
@@ -82,7 +84,6 @@ namespace Matrix
             }
             return ar;
         }
-
         public float[] Getcolumn(int i)
         {
             float[] ar = new float[column];
@@ -94,7 +95,6 @@ namespace Matrix
             }
             return ar;
         }
-
         public Matrix GetRowMatrix(int i)
         {
             float[] res = GetRow(i);
@@ -105,7 +105,6 @@ namespace Matrix
             }
             return new Matrix(e);
         }
-
         public Matrix GetColumnMatrix(int i)
         {
             float[] res = Getcolumn(i);
@@ -116,7 +115,6 @@ namespace Matrix
             }
             return new Matrix(e);
         }
-
         static int SignOfElement(int i, int j)
         {
             if ((i + j) % 2 == 0)
@@ -128,7 +126,6 @@ namespace Matrix
                 return -1;
             }
         }
-
         static float[,] CreateSmallerMatrix(float[,] input, int i, int j)
         {
             int order = int.Parse(System.Math.Sqrt(input.Length).ToString());
@@ -155,7 +152,6 @@ namespace Matrix
             }
             return output;
         }
-
         public float Determinant(float[,] input)
         {
             int order = int.Parse(System.Math.Sqrt(input.Length).ToString());
@@ -179,43 +175,62 @@ namespace Matrix
             }
 
         }
-        public void SetMatrix(Matrix m)
+        public void Decomposition()
         {
-            for (int i = 0; i < m.Size; i++)
-            {
-                for (int j = 0; j < m.Size; j++)
-                {
-                    Console.WriteLine("Set [" + i.ToString() + ',' + j.ToString() + ']');
-                    m.SetMatVal(i, j, float.Parse(Console.ReadLine()));
-                }
-            }
-            Console.Clear();
-        }
-        
-        public Matrix Sum(Matrix m1 , Matrix m2)
-        {
-            for (int i = 0; i < m1.Column; i++)
-            {
-                for (int j = 0; j < m1.Row; j++)
-                {
-                    m1.Elemnts[i, j] = m2.Elemnts[i, j] + m1.Elemnts[i, j];
-                }
-            }
-            return m1;
-        }
+            lower = new Matrix(Row, Column);
+            upper = new Matrix(Row, Column);
 
-        public Matrix Min(Matrix m1, Matrix m2)
-        {
-            for (int i = 0; i < m1.Column; i++)
+            for (int i = 0; i < Row; i++)
             {
-                for (int j = 0; j < m1.Row; j++)
+                for (int k = i; k < Row; k++)
                 {
-                    m1.Elemnts[i, j] = m2.Elemnts[i, j] - m1.Elemnts[i, j];
+                    float sum = 0;
+                    for (int j = 0; j < i; j++)
+                        sum += (float)(lower.Elemnts[i, j] * upper.Elemnts[j, k]);
+                    upper.Elemnts[i, k] = Elemnts[i, k] - sum;
+                }
+                for (int k = i; k < Row; k++)
+                {
+                    if (i == k)
+                        lower.Elemnts[i, i] = 1;
+                    else
+                    {
+                        float sum = 0;
+                        for (int j = 0; j < i; j++)
+                            sum += (float)(lower.Elemnts[k, j] * upper.Elemnts[j, i]);
+                        lower.Elemnts[k, i] = (Elemnts[k, i] - sum) / upper.Elemnts[i, i];
+                    }
                 }
             }
-            return m1;
         }
-
+        public Matrix L_Decomposition()
+        {
+            Matrix lower = new Matrix(Row, Column);
+            Matrix upper = new Matrix(Row, Column);
+            for (int i = 0; i < Row; i++)
+            {
+                for (int k = i; k < Row; k++)
+                {
+                    float sum = 0;
+                    for (int j = 0; j < i; j++)
+                        sum += (float)(lower.Elemnts[i, j] * upper.Elemnts[j, k]);
+                    upper.Elemnts[i, k] = Elemnts[i, k] - sum;
+                }
+                for (int k = i; k < Row; k++)
+                {
+                    if (i == k)
+                        lower.Elemnts[i, i] = 1;
+                    else
+                    {
+                        float sum = 0;
+                        for (int j = 0; j < i; j++)
+                            sum += (float)(lower.Elemnts[k, j] * upper.Elemnts[j, i]);
+                        lower.Elemnts[k, i] = (Elemnts[k, i] - sum) / upper.Elemnts[i, i];
+                    }
+                }
+            }
+            return lower;
+        }
         public override string ToString()
         {
             string s = "";
